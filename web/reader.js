@@ -269,8 +269,64 @@
         ? `${page + 1}–${Math.min(page + 2, pages.length)}쪽 / ${pages.length}쪽`
         : `${page + 1}쪽 / ${pages.length}쪽`;
   }
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  let stopTurn = () => {};
+  reducedMotion.addEventListener("change", () => {
+    if (reducedMotion.matches) stopTurn();
+  });
+  function turnPage(previous, direction) {
+    const spread = $("#spread"), n = count();
+    if (previous.length !== n || reducedMotion.matches || !spread.animate) return;
+    const layer = document.createElement("div");
+    layer.className = "page-turn";
+    layer.setAttribute("aria-hidden", "true");
+    layer.inert = true;
+    const leaf = document.createElement("div");
+    leaf.className = "turn-leaf";
+    const forward = direction > 0;
+    leaf.style.left = n === 2 && forward ? "600px" : "0";
+    leaf.style.transformOrigin = forward ? "left center" : "right center";
+    const face = (node, back = false) => {
+      const el = clone(node);
+      el.classList.add("turn-face", back ? "turn-back" : "turn-front");
+      el.querySelectorAll("[id]").forEach((x) => x.removeAttribute("id"));
+      return el;
+    };
+    const front = face(previous[n === 2 && forward ? 1 : 0]);
+    leaf.append(front);
+    const animations = [];
+    const duration = n === 2 ? 480 : 400;
+    if (n === 2) {
+      // Keep the opposite old page beneath the leaf until it lands.
+      const still = face(previous[forward ? 0 : 1]);
+      still.classList.add("turn-still");
+      still.style.left = forward ? "0" : "600px";
+      layer.append(still);
+      leaf.append(face(spread.children[forward ? 0 : 1], true));
+    }
+    const shade = document.createElement("div");
+    shade.className = "turn-shade";
+    front.append(shade);
+    layer.append(leaf);
+    spread.append(layer);
+    const turn = leaf.animate([
+      { transform: "rotateY(0deg)", ...(n === 1 ? { opacity: 1 } : {}) },
+      { transform: `rotateY(${(forward ? -1 : 1) * (n === 2 ? 180 : 96)}deg)`, ...(n === 1 ? { opacity: 0 } : {}) },
+    ], { duration, easing: "cubic-bezier(.25,1,.5,1)", fill: "both" });
+    animations.push(turn, shade.animate([
+      { opacity: 0 }, { opacity: 0.22, offset: 0.45 }, { opacity: 0 },
+    ], { duration, fill: "both" }));
+    const cleanup = () => {
+      animations.forEach((a) => a.cancel());
+      layer.remove();
+      if (stopTurn === cleanup) stopTurn = () => {};
+    };
+    stopTurn = cleanup;
+    turn.finished.then(cleanup, () => {});
+  }
   function show(p, animate = 0, fromRead = false) {
     const old = page;
+    stopTurn();
     page = Math.max(0, Math.min(p, pages.length - 1));
     if (mode === "book" && count() === 2) page = Math.floor(page / 2) * 2;
     if (mode === "book") {
@@ -283,13 +339,10 @@
         nodes.push(blank);
       }
       const spread = $("#spread");
+      const previous = [...spread.children];
       spread.replaceChildren(...nodes);
-      spread.classList.remove("turn-next", "turn-prev");
-      if (animate && !matchMedia("(prefers-reduced-motion:reduce)").matches) {
-        void spread.offsetWidth;
-        spread.classList.add(animate > 0 ? "turn-next" : "turn-prev");
-      }
       fit();
+      if (animate && page !== old) turnPage(previous, page > old ? 1 : -1);
     } else if (!fromRead) {
       const block = pages[page].querySelector("[data-block]")?.dataset.block;
       const target = block
