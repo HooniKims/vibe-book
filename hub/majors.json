@@ -1,0 +1,26 @@
+[
+  {
+    "name": "연세대학교 응용통계학과",
+    "courses": "확률론 · 회귀분석",
+    "fact": "교육과정에서 확률과 자료 분석 관련 과목을 확인할 수 있어요.",
+    "source": "https://economics.yonsei.ac.kr/stat/education/process.do",
+    "interest": "설문 응답을 정리하고 그래프로 비교하는 일이 재미있었다.",
+    "question": "표본이 작거나 응답이 편향됐을 때는 어떻게 해석할까?"
+  },
+  {
+    "name": "서울대학교 컴퓨터공학부",
+    "courses": "자료구조 · 컴퓨터구조",
+    "fact": "교과과정에 자료구조와 컴퓨터구조가 제시돼 있어요.",
+    "source": "https://cse.snu.ac.kr/ko/academics/undergraduate/courses",
+    "interest": "흩어진 파일을 규칙에 맞게 정리하는 방법이 궁금하다.",
+    "question": "자료를 저장하는 방식에 따라 처리 속도가 왜 달라질까?"
+  },
+  {
+    "name": "서울대학교 아동가족학과",
+    "courses": "발달연구 · 콘텐츠 개발 · 조사분석 등 교육과정 트랙",
+    "fact": "교육과정 안내는 발달연구·콘텐츠 개발·상담중재·공공정책·조사분석 트랙을 소개해요.",
+    "source": "https://childfamily.snu.ac.kr/under_curriculum/",
+    "interest": "사람마다 다른 불편을 조사하고 해결 방법을 제안하는 일이 좋았다.",
+    "question": "어떤 사람에게 물어봐야 다양한 경험을 담을 수 있을까?"
+  }
+]

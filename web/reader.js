@@ -2,7 +2,7 @@
 (() => {
   const $ = (s) => document.querySelector(s),
     $$ = (s) => [...document.querySelectorAll(s)];
-  const key = "sudo-vibe-ebook-20261018-v3";
+  const key = "sudo-vibe-ebook-20261019-hub-v1";
   let stored = {};
   try {
     stored = JSON.parse(localStorage.getItem(key) || "{}");
@@ -456,6 +456,7 @@
   }
   async function start() {
     await document.fonts.ready;
+    await Promise.all([...$("#source").content.querySelectorAll("img")].map(n => new Promise(resolve => { const im=new Image(); im.onload=im.onerror=resolve; im.src=n.src; })));
     paginate();
     const hashPage = Number(
       new URLSearchParams(location.hash.slice(1)).get("p"),
@@ -604,7 +605,7 @@
         touch = null;
         if (
           e.touches.length !== 1 ||
-          e.target.closest("a,button,input,textarea,select")
+          e.target.closest("a,button,input,textarea,select,pre,.codebox")
         )
           return;
         const table = e.target.closest(".table-scroll");

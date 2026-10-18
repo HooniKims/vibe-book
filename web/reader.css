@@ -1288,3 +1288,5 @@ figure.slide-art {
     font-size: 12px;
   }
 }
+
+.hub-link{font-size:13px;font-weight:700;color:var(--accent);padding:8px;text-decoration:none}.screen-shot img{display:block;width:100%;height:auto;max-height:340px;object-fit:contain;border:1px solid #d4dccd;border-radius:7px;background:white}.reading .screen-shot img{max-height:none}.screen-shot{margin:18px 0}.codebox{background:#172b27;color:#edf4e9;border-color:#324b40}.code-label{background:#223d32;color:#c6d4bf}.code-label .copy{background:#f5db75;color:#172b27}.reading pre{overflow:auto}.screen-shot a{display:block}@media print{.hub-link{display:none}.codebox{background:#f0f3ec;color:#203c31}.code-label{background:#e5ecdf;color:#203c31}}
