@@ -2,7 +2,7 @@
 (() => {
   const $ = (s) => document.querySelector(s),
     $$ = (s) => [...document.querySelectorAll(s)];
-  const key = "sudo-vibe-ebook-20261018-v2";
+  const key = "sudo-vibe-ebook-20261018-v3";
   let stored = {};
   try {
     stored = JSON.parse(localStorage.getItem(key) || "{}");

@@ -1,6 +1,6 @@
 # 요즘 바이브코딩
 
-수도여자고등학교 1·2학년을 위한 강의 미리읽기와 선택 따라하기. 학과 비교·성적 분석·파일 정리를 중심으로 사람의 판단과 도메인 지식의 중요성을 다룹니다.
+수도여자고등학교 1·2학년을 위한 강의 미리읽기와 선택 따라하기. 『관점을 디자인하라』에서 출발해 익숙한 일을 질문으로 바꾸고, 학과 비교·성적 분석·파일 정리로 시험합니다. 결과를 확인하며 도메인 지식과 공부의 필요성으로 이어집니다.
 
 **[전자책 읽기](https://hoonikims.github.io/vibe-book/)** · **[PDF 받기](https://hoonikims.github.io/vibe-book/guidebook.pdf)** · **[원고 바로 수정](https://github.com/HooniKims/vibe-book/edit/main/book.md)**
 
