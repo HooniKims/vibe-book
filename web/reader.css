@@ -431,36 +431,46 @@ figure svg {
   color: var(--muted);
   font-size: 13px;
 }
-/* A temporary, inaccessible leaf turns above the already-updated pages. */
+/* A curved sheet made of narrow panels; live content remains underneath. */
 .page-turn {
   position: absolute;
   inset: 0;
-  perspective: 2400px;
+  perspective: 2800px;
   perspective-origin: center;
   pointer-events: none;
   z-index: 5;
 }
-.turn-leaf {
+.single-turn { clip-path: inset(-100px 0); }
+.turn-still { position: absolute; top: 0; }
+.curl-strip {
   position: absolute;
   top: 0;
-  width: 600px;
+  left: 0;
   height: 850px;
+  transform-origin: left center;
   transform-style: preserve-3d;
   will-change: transform;
 }
-.turn-face {
+.curl-face {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  height: 850px;
+  overflow: hidden;
+  background: var(--paper);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-.turn-back { transform: rotateY(180deg); }
-.turn-shade {
+.curl-face > .paper { position: absolute; top: 0; border: 0; }
+.curl-back { transform: rotateY(180deg); background: #f1eee2; }
+.curl-shade { position: absolute; inset: 0; background: #243629; opacity: 0; }
+.curl-shadow {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, #172e22aa, #172e2210 75%);
+  top: 0;
+  width: 120px;
+  height: 850px;
+  background: linear-gradient(90deg, transparent, #1b2a20 50%, transparent);
   opacity: 0;
-  pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce), print {
   .page-turn { display: none !important; }

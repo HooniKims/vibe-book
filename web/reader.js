@@ -22,7 +22,7 @@
     try {
       localStorage.setItem(
         key,
-        JSON.stringify({ page, mode, font, bookmarks: [...bookmarks] }),
+        JSON.stringify({ mode, font, bookmarks: [...bookmarks] }),
       );
     } catch {}
   };
@@ -277,52 +277,88 @@
   function turnPage(previous, direction) {
     const spread = $("#spread"), n = count();
     if (previous.length !== n || reducedMotion.matches || !spread.animate) return;
+    const forward = direction > 0, sign = forward ? 1 : -1;
+    const width = 600, strips = n === 2 ? 20 : 14, step = width / strips;
+    const hinge = n === 2 || !forward ? width : 0;
     const layer = document.createElement("div");
-    layer.className = "page-turn";
+    layer.className = "page-turn" + (n === 1 ? " single-turn" : "");
+    layer.dataset.direction = forward ? "next" : "prev";
     layer.setAttribute("aria-hidden", "true");
     layer.inert = true;
-    const leaf = document.createElement("div");
-    leaf.className = "turn-leaf";
-    const forward = direction > 0;
-    leaf.style.left = n === 2 && forward ? "600px" : "0";
-    leaf.style.transformOrigin = forward ? "left center" : "right center";
-    const face = (node, back = false) => {
+    const cleanClone = (node) => {
       const el = clone(node);
-      el.classList.add("turn-face", back ? "turn-back" : "turn-front");
       el.querySelectorAll("[id]").forEach((x) => x.removeAttribute("id"));
       return el;
     };
-    const front = face(previous[n === 2 && forward ? 1 : 0]);
-    leaf.append(front);
-    const animations = [];
-    const duration = n === 2 ? 480 : 400;
     if (n === 2) {
-      // Keep the opposite old page beneath the leaf until it lands.
-      const still = face(previous[forward ? 0 : 1]);
+      const still = cleanClone(previous[forward ? 0 : 1]);
       still.classList.add("turn-still");
       still.style.left = forward ? "0" : "600px";
       layer.append(still);
-      leaf.append(face(spread.children[forward ? 0 : 1], true));
     }
-    const shade = document.createElement("div");
-    shade.className = "turn-shade";
-    front.append(shade);
-    layer.append(leaf);
+    const front = previous[n === 2 && forward ? 1 : 0];
+    const back = n === 2 ? spread.children[forward ? 0 : 1] : null;
+    const animations = [], options = { duration: 500, easing: "linear", fill: "both" };
+    // Integrate the sheet's tangent along its width: the edge bends before the spine.
+    // Each narrow panel follows that curve; the whole sheet never rotates as a slab.
+    const frames = Array.from({ length: strips }, () => []);
+    const shades = Array.from({ length: strips }, () => []);
+    const shadowFrames = [];
+    for (let f = 0; f <= 36; f++) {
+      const t = f / 36, progress = t * t * (3 - 2 * t);
+      const bend = 0.95 * Math.sin(Math.PI * progress);
+      let x = hinge, z = 0;
+      for (let i = 0; i < strips; i++) {
+        const u = (i + 0.5) / strips;
+        const angle = Math.PI * progress + bend * (2 * u - 1);
+        const dx = sign * step * Math.cos(angle), dz = step * Math.sin(angle);
+        const left = forward ? x : x + dx;
+        const depth = forward ? z : z + dz;
+        frames[i].push({ offset: t, transform: `translate3d(${left}px,0,${depth}px) rotateY(${-sign * angle}rad)` });
+        shades[i].push({ offset: t, opacity: Math.sin(Math.PI * progress) * (0.05 + 0.20 * Math.abs(Math.sin(angle))) });
+        x += dx; z += dz;
+      }
+      shadowFrames.push({ offset: t, transform: `translateX(${Math.max(0, Math.min(600 * n - 120, x - 60))}px) scaleX(${0.45 + Math.sin(Math.PI * progress)})`, opacity: 0.18 * Math.sin(Math.PI * progress) });
+    }
+    const shadow = document.createElement("div");
+    shadow.className = "curl-shadow";
+    layer.append(shadow);
+    animations.push(shadow.animate(shadowFrames, options));
+    for (let i = 0; i < strips; i++) {
+      const strip = document.createElement("div");
+      strip.className = "curl-strip";
+      strip.style.width = step + "px";
+      // A subpixel overlap prevents hairline gaps between adjacent curved panels.
+      const makeFace = (node, isBack) => {
+        const face = document.createElement("div");
+        face.className = "curl-face" + (isBack ? " curl-back" : " curl-front");
+        face.style.width = step + 0.6 + "px";
+        face.style.transformOrigin = step / 2 + "px center";
+        if (node) {
+          const content = cleanClone(node);
+          const index = isBack ? (forward ? strips - i - 1 : i) : (forward ? i : strips - i - 1);
+          content.style.left = -index * step + "px";
+          face.append(content);
+        }
+        const shade = document.createElement("div");
+        shade.className = "curl-shade";
+        face.append(shade);
+        animations.push(shade.animate(shades[i], options));
+        strip.append(face);
+      };
+      makeFace(front, false);
+      makeFace(back, true);
+      layer.append(strip);
+      animations.push(strip.animate(frames[i], options));
+    }
     spread.append(layer);
-    const turn = leaf.animate([
-      { transform: "rotateY(0deg)", ...(n === 1 ? { opacity: 1 } : {}) },
-      { transform: `rotateY(${(forward ? -1 : 1) * (n === 2 ? 180 : 96)}deg)`, ...(n === 1 ? { opacity: 0 } : {}) },
-    ], { duration, easing: "cubic-bezier(.25,1,.5,1)", fill: "both" });
-    animations.push(turn, shade.animate([
-      { opacity: 0 }, { opacity: 0.22, offset: 0.45 }, { opacity: 0 },
-    ], { duration, fill: "both" }));
     const cleanup = () => {
       animations.forEach((a) => a.cancel());
       layer.remove();
       if (stopTurn === cleanup) stopTurn = () => {};
     };
     stopTurn = cleanup;
-    turn.finished.then(cleanup, () => {});
+    animations.at(-1).finished.then(cleanup, () => {});
   }
   function show(p, animate = 0, fromRead = false) {
     const old = page;
@@ -511,22 +547,14 @@
     await document.fonts.ready;
     await Promise.all([...$("#source").content.querySelectorAll("img")].map(n => new Promise(resolve => { const im=new Image(); im.onload=im.onerror=resolve; im.src=n.src; })));
     paginate();
-    const hashPage = Number(
-      new URLSearchParams(location.hash.slice(1)).get("p"),
-    );
-    page = Math.max(
-      0,
-      Math.min(
-        Number.isInteger(hashPage) && hashPage > 0
-          ? hashPage - 1
-          : Number(stored.page) || 0,
-        pages.length - 1,
-      ),
-    );
+    // A fresh visit or reload always opens the cover, even with an old #p link.
+    page = 0;
+    history.scrollRestoration = "manual";
+    history.replaceState(null, "", "#p=1");
     $("#loading").hidden = true;
     $("#app-content").hidden = false;
     setMode(mode, true);
-    if (mode === "read" && page) show(page);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     $("#menu").onclick = openDrawer;
     $("#drawer-close").onclick = closeDrawer;
     $("#overlay").onclick = closeDrawer;
